@@ -1,0 +1,78 @@
+{
+  "manifest_version": 3,
+  "name": "Arena.ai Helper - Auto Scroll & Auto Send",
+  "version": "2.0.1",
+  "description": "Auto-scroll, auto-send queued prompts, auto-continue, export, shortcuts, and more for Arena.ai Agent Mode.",
+  "permissions": ["storage", "notifications", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://arena.ai/*",
+    "https://*.arena.ai/*",
+    "https://*.e2b.app/*",
+    "https://*.e2b.dev/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Arena.ai Helper",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "commands": {
+    "toggle-auto-send": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "Toggle auto-send"
+    },
+    "toggle-auto-scroll": {
+      "suggested_key": { "default": "Alt+Shift+A" },
+      "description": "Toggle auto-scroll"
+    },
+    "clear-input": {
+      "suggested_key": { "default": "Alt+Shift+C" },
+      "description": "Clear input and queue"
+    },
+    "stop-after-this": {
+      "suggested_key": { "default": "Alt+Shift+X" },
+      "description": "Stop queue after this response"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://arena.ai/*",
+        "https://*.arena.ai/*",
+        "https://*.e2b.app/*",
+        "https://*.e2b.dev/*"
+      ],
+      "js": [
+        "lib/state.js",
+        "lib/ui.js",
+        "features/scroll.js",
+        "features/send.js",
+        "features/queue.js",
+        "features/continue.js",
+        "features/notifications.js",
+        "features/autofocus.js",
+        "features/export.js",
+        "features/copycode.js",
+        "features/timestamps.js",
+        "features/closeprotect.js",
+        "features/snippets.js",
+        "features/floatingstatus.js",
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "match_about_blank": false
+    }
+  ]
+}

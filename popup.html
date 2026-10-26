@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Arena.ai Helper</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        width: 320px;
+        margin: 0;
+        padding: 12px 14px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 13px;
+        color: #1f2937;
+        background: #ffffff;
+        max-height: 600px;
+        overflow-y: auto;
+      }
+      h1 {
+        font-size: 14px;
+        margin: 0 0 8px 0;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .logo {
+        width: 18px; height: 18px; border-radius: 4px;
+        background: #6366f1;
+        display: inline-block;
+      }
+      h2 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6b7280;
+        margin: 12px 0 4px 0;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 7px 0;
+        border-top: 1px solid #f3f4f6;
+        gap: 10px;
+      }
+      .row:first-of-type { border-top: none; }
+      .label { flex: 1; }
+      .desc { font-size: 11px; color: #6b7280; margin-top: 1px; line-height: 1.35; }
+
+      /* Toggle switch */
+      .switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
+      .switch input { opacity: 0; width: 0; height: 0; }
+      .slider {
+        position: absolute; cursor: pointer; inset: 0; background-color: #d1d5db;
+        border-radius: 20px; transition: 0.15s;
+      }
+      .slider:before {
+        content: ""; position: absolute; height: 14px; width: 14px; left: 3px; bottom: 3px;
+        background-color: #fff; border-radius: 50%; transition: 0.15s;
+      }
+      input:checked + .slider { background-color: #6366f1; }
+      input:checked + .slider:before { transform: translateX(16px); }
+
+      .delimiter {
+        width: 60px;
+        padding: 3px 6px;
+        font-size: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-family: ui-monospace, monospace;
+      }
+
+      button.action {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #6366f1;
+        background: #6366f1;
+        color: white;
+        font-size: 12px;
+        cursor: pointer;
+        font-weight: 500;
+      }
+      button.action.secondary {
+        background: #fff;
+        color: #6366f1;
+      }
+      button.action:hover { filter: brightness(1.05); }
+      .actions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+
+      .snippets-list {
+        max-height: 140px;
+        overflow-y: auto;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 4px;
+        margin-top: 4px;
+      }
+      .snippet-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px;
+        border-radius: 4px;
+      }
+      .snippet-item:hover { background: #f3f4f6; }
+      .snippet-item input[type="text"] {
+        flex: 1;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        padding: 3px 6px;
+        font-size: 12px;
+      }
+      .snippet-item .del {
+        background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 14px; padding: 0 4px;
+      }
+      .hint {
+        margin-top: 8px;
+        font-size: 11px;
+        color: #9ca3af;
+        line-height: 1.4;
+      }
+      kbd {
+        font-family: ui-monospace, monospace;
+        font-size: 10px;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 3px;
+        padding: 1px 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1><span class="logo"></span> Arena.ai Helper <span style="color:#9ca3af;font-weight:400;font-size:11px;">v2</span></h1>
+
+    <h2>Core</h2>
+    <div class="row">
+      <div class="label">
+        Auto-scroll to bottom
+        <div class="desc">Keep latest message in view.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="autoScroll" /><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="label">
+        Pause on manual scroll
+        <div class="desc">Resume when you scroll back down.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="scrollPauseOnManualScroll" /><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="label">
+        Auto-send prompts
+        <div class="desc">Send queued text when the assistant finishes.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="autoSend" /><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="label">
+        Multi-prompt queue
+        <div class="desc">Separator <input type="text" id="queueDelimiter" class="delimiter" /></div>
+      </div>
+      <label class="switch"><input type="checkbox" id="multiQueueEnabled" /><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="label">
+        Auto-continue
+        <div class="desc">Click "Continue generating" automatically.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="autoContinue" /><span class="slider"></span></label>
+    </div>
+
+    <h2>Feedback</h2>
+    <div class="row">
+      <div class="label">
+        Done notification
+        <div class="desc">Desktop notification when chain finishes.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="doneNotification" /><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="label">
+        Done sound
+        <div class="desc">Small chime when chain finishes.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="doneSound" /><span class="slider"></span></label>
+    </div>
+
+    <h2>Input & UI</h2>
+    <div class="row">
+      <div class="label">
+        Auto-focus input
+        <div class="desc">Focus the text box after each response.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="autoFocus" /><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="label">
+        Floating status pill
+        <div class="desc">Shows state in page corner.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="showFloatingStatus" /><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="label">
+        Copy-code buttons
+        <div class="desc">Add a "Copy" button to each code block.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="showCopyCode" /><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="label">
+        Message timestamps
+        <div class="desc">Show HH:MM badges on new messages.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="showTimestamps" /><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="label">
+        Protect against accidental close
+        <div class="desc">Warn before closing while busy.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="closeProtect" /><span class="slider"></span></label>
+    </div>
+
+    <h2>Actions</h2>
+    <div class="actions">
+      <button class="action" id="exportBtn">Export conversation (.md)</button>
+      <button class="action secondary" id="clearQueueBtn">Clear queue & stop</button>
+    </div>
+
+    <h2>Snippets
+      <button class="action" id="addSnippet" style="padding:2px 8px;font-size:11px;margin-left:6px;">+ Add</button>
+    </h2>
+    <div class="snippets-list" id="snippetsList"></div>
+    <div class="desc" style="margin-top:4px;">
+      Type <kbd>/name</kbd> and press <kbd>Tab</kbd> in the chat input to insert, or click ✦.
+    </div>
+
+    <h2>Shortcuts</h2>
+    <div class="desc">
+      <kbd>Alt+Shift+S</kbd> toggle auto-send ·
+      <kbd>Alt+Shift+A</kbd> toggle auto-scroll ·
+      <kbd>Alt+Shift+C</kbd> clear input ·
+      <kbd>Alt+Shift+X</kbd> stop after this.
+      Change them at <em>chrome://extensions/shortcuts</em>.
+    </div>
+
+    <div class="hint">Refresh the Arena.ai tab after changing settings.</div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
