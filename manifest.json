@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Arena.ai Helper - Auto Scroll & Auto Send",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Auto-scroll, auto-send queued prompts, auto-continue, quick prompts, captcha safety, export, shortcuts, and more for Arena.ai Agent Mode.",
   "permissions": ["storage", "notifications", "scripting"],
   "background": {
