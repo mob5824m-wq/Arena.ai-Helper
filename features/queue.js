@@ -109,7 +109,19 @@
       } else if (msg.type === 'cmd:export-markdown') {
         const { features } = window.ArenaHelper;
         if (features && features.exportMd) features.exportMd.exportConversation();
+      } else if (msg.type === 'cmd:captcha-resume') {
+        const { features } = window.ArenaHelper;
+        if (features && features.captcha) {
+          // Force captcha feature to re-evaluate by emitting an exit.
+          // The simplest way is to fire a synthetic 'captcha clear' by temporarily
+          // nulling out detection for one tick; we do that via a direct call.
+          // captcha.js exposes no public exit, so message the feature through the DOM.
+          window.dispatchEvent(new CustomEvent('arena-helper:captcha-resume'));
+        }
       }
+    });
+    window.addEventListener('arena-helper:captcha-resume', () => {
+      // Captcha feature listens for this to force exit safe mode.
     });
   }
 

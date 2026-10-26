@@ -123,7 +123,8 @@
     if (!label) return;
 
     let state;
-    if (runtime.isAssistantResponding) state = '🟣 Generating';
+    if (runtime.captchaDetected) state = '🛑 Captcha — paused';
+    else if (runtime.isAssistantResponding) state = '🟣 Generating';
     else if (settings.stopAfterThis) state = '🟡 Stopping after this';
     else if (runtime.queuedPrompts && runtime.queuedPrompts.length > 0) state = `🟢 Queued: ${runtime.queuedPrompts.length}`;
     else state = '⚪ Idle';
@@ -135,8 +136,8 @@
     if (runtime.userScrolledUp) flags.push('(paused)');
     label.textContent = `${state} · ${flags.join(' · ')}`;
 
-    // Show Stop button only while generating or when queue has items (it becomes "arm stop-after-this")
-    const showStop = runtime.isAssistantResponding || (runtime.queuedPrompts && runtime.queuedPrompts.length > 0) || settings.stopAfterThis;
+    // Show Stop button only while generating or when queue has items
+    const showStop = !runtime.captchaDetected && (runtime.isAssistantResponding || (runtime.queuedPrompts && runtime.queuedPrompts.length > 0) || settings.stopAfterThis);
     if (btnStop) btnStop.style.display = showStop ? '' : 'none';
   }
 

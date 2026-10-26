@@ -7,6 +7,7 @@
 
   function attemptContinue() {
     if (!settings.autoContinue) return false;
+    if (runtime.captchaDetected) return false;
     if (runtime.autoContinueClicksThisResponse >= (settings.autoContinueMaxClicks || 3)) return false;
     if (runtime.isAssistantResponding) return false;
 

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Arena.ai Helper - Auto Scroll & Auto Send",
-  "version": "2.1.0",
-  "description": "Auto-scroll, auto-send queued prompts, auto-continue, export, shortcuts, and more for Arena.ai Agent Mode.",
+  "version": "2.2.0",
+  "description": "Auto-scroll, auto-send queued prompts, auto-continue, quick prompts, captcha safety, export, shortcuts, and more for Arena.ai Agent Mode.",
   "permissions": ["storage", "notifications", "scripting"],
   "background": {
     "service_worker": "background.js"
@@ -18,12 +18,14 @@
     "default_title": "Arena.ai Helper",
     "default_icon": {
       "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
   },
   "icons": {
     "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
@@ -57,6 +59,7 @@
         "lib/state.js",
         "lib/ui.js",
         "lib/theme.js",
+        "features/captcha.js",
         "features/scroll.js",
         "features/send.js",
         "features/queue.js",
@@ -67,7 +70,7 @@
         "features/copycode.js",
         "features/timestamps.js",
         "features/closeprotect.js",
-        "features/snippets.js",
+        "features/quickprompts.js",
         "features/floatingstatus.js",
         "features/counter.js",
         "content.js"

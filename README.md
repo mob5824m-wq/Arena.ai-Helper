@@ -1,43 +1,38 @@
-# Arena.ai Helper (v2)
+# Arena.ai Helper (v2.2)
 
-A Chrome extension (Manifest V3) that turns [Arena.ai](https://arena.ai) Agent Mode into a hands-free, queueable assistant driver.
+A Chrome extension (Manifest V3) that turns [Arena.ai](https://arena.ai) Agent Mode into a hands-free, queueable assistant driver — with a built-in safety stop for captchas/rate-limit challenges.
+
+## Logo
+Indigo rounded-square icon with a white down-arrow (auto-scroll metaphor), shipped at 16/32/48/128px for toolbar, Chrome Web Store, and notifications.
 
 ## Features
 
+**Safety**
+- **Captcha / challenge auto-pause** — detects Cloudflare Turnstile/interstitials, reCAPTCHA/hCaptcha/Arkose, "verify you are human", "just a moment", "too many requests / rate limit", captcha iframes and captcha-styled inputs. When triggered:
+  - Auto-send and auto-continue are immediately disabled **in memory only** (your stored prefs are preserved).
+  - The queue and any queued text are held; nothing is sent while the challenge is up.
+  - A prominent fixed banner appears with a "Resume now" button, and a desktop notification fires so you know to solve it.
+  - After the captcha disappears for ≥2 seconds, automation resumes automatically.
+
 **Core**
-- **Auto-scroll to bottom** — keeps the latest streamed token in view; pauses when you scroll up to read earlier messages and resumes when you scroll back to the bottom.
-- **Auto-send** — submits the prompt in the compose box as soon as the assistant finishes. Includes a small delay and a cooldown to prevent accidental double-sends mid-typing.
-- **Multi-prompt queue** — separate prompts with a configurable delimiter (default `---` on a line by itself) and the extension sends them one-by-one, waiting for each response to finish.
-- **Auto-continue** — automatically clicks "Continue generating" / "Read more" buttons when a response is cut off (capped per-response for safety).
-- **Stop-after-this-response** (`Alt+Shift+X`) — arms a one-shot flag: finish the current response, then don't send anything queued after it.
+- **Auto-scroll to bottom** — prefers clicking Arena's native `aria-label="Scroll to bottom"` button when visible; otherwise falls back to its own scroll-container logic. Pauses when Arena's button is visible (authoritative signal you're away from bottom).
+- **Auto-send** — submits text in the compose box as soon as the assistant finishes, keyed off `button[data-perf-target="send"]` and `aria-label="Send message"` (the exact Arena markup).
+- **Multi-prompt queue** — prompts separated by a configurable delimiter (default `---`) are sent one-by-one as each response finishes.
+- **Auto-continue** — clicks "Continue generating" / "Read more" buttons (capped per response for safety).
+- **Stop-after-this-response** (`Alt+Shift+X`).
 
 **Feedback**
-- **Desktop notification** when a chain finishes (or when "stop after this" halts).
-- **Subtle chime sound** when the chain finishes (toggleable).
+- Desktop notification + chime when a chain finishes; distinct notification when a captcha is hit.
 
 **Input & UI ergonomics**
-- **Auto-focus input** after each response (caret at end of textarea).
-- **Char/token counter** in the composer corner (rough `chars / 4` estimate) that turns indigo past 4k chars and red past 12k.
-- **Floating status pill** in the page corner showing state: Idle / Generating / Queued:N / Stopping, plus feature flags and clickable ■ Stop / ✕ Clear buttons.
-- **Copy-code buttons** on every code block (theme-aware).
-- **HH:MM timestamps** on messages (optional, theme-aware).
-- **Close-protection** — warns before you close or reload while a response is streaming, there's queued work, or there's unsent text.
-- **Quick-paste snippets** — a small ✦ button next to the input opens a theme-aware popover of saved prompts; edit/add in popup. Or type `/name` and press `Tab` in the chat input.
-- **Export to Markdown** — one click downloads the current conversation (with fenced code blocks) as a `.md` file.
-- **Full dark/light theme awareness** — all injected UI (status pill, copy buttons, timestamps, snippets popover, ✦ button, counter) samples Arena's background color and adapts.
-- **Three one-click profiles** in the popup:
-  - 🤖 **Hands-free** — all automation on (auto-scroll, auto-send, queue, auto-continue, notifications, focus, close-protect).
-  - 💬 **Chat** — auto-scroll + copy-code + focus + close-protect only; you drive each turn.
-  - ⭕ **Off** — everything off; vanilla Arena.
-- **Arena-native auto-scroll** — when Arena's own "Scroll to bottom" floating button is visible, the helper treats it as the authoritative "user is away from bottom" signal, and clicking it (or returning to the bottom) resumes auto-scroll.
+- **Quick Prompts** ✦ — one-click preset prompts grouped by **General / Code / Writing / Agent**. Each prompt can be configured to auto-send or just insert (⏎ indicator). Ships with 24 useful defaults (Continue, TL;DR, Fix bugs, Code review, Write tests, Refactor, Formalize, Proofread, Next step, Commands, Verify mods, Status, Mark done, …).
+- **Slash commands** — type `/continue`, `/tldr`, `/fixcode`, etc. and press `Tab` to insert. Custom prompts you add get their own slash id.
+- Auto-focus input after responses, char/token counter, floating status pill (with clickable ■ Stop / ✕ Clear buttons), copy-code buttons, optional timestamps, close-protection.
+- Full dark/light theme awareness (samples body luminance + `prefers-color-scheme`).
+- Three one-click profiles: **Hands-free**, **Chat**, **Off**.
+- Export conversation to Markdown.
 
-**Keyboard shortcuts** (configurable at `chrome://extensions/shortcuts`)
-- `Alt+Shift+S` toggle auto-send
-- `Alt+Shift+A` toggle auto-scroll
-- `Alt+Shift+C` clear input & queue
-- `Alt+Shift+X` stop after this response
-
-All toggles live in the toolbar popup and are synced via `chrome.storage.sync`.
+**Keyboard shortcuts** (configurable at `chrome://extensions/shortcuts`): `Alt+Shift+S` toggle auto-send · `Alt+Shift+A` toggle auto-scroll · `Alt+Shift+C` clear input · `Alt+Shift+X` stop after this.
 
 ## Install (unpacked)
 

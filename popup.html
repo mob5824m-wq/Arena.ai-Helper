@@ -89,7 +89,7 @@
       .actions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
 
       .snippets-list {
-        max-height: 140px;
+        max-height: 220px;
         overflow-y: auto;
         border: 1px solid #e5e7eb;
         border-radius: 6px;
@@ -97,19 +97,34 @@
         margin-top: 4px;
       }
       .snippet-item {
-        display: flex;
+        display: grid;
+        grid-template-columns: 80px 1fr 70px 24px;
+        gap: 4px;
         align-items: center;
-        gap: 6px;
         padding: 4px;
         border-radius: 4px;
       }
       .snippet-item:hover { background: #f3f4f6; }
       .snippet-item input[type="text"] {
-        flex: 1;
         border: 1px solid #e5e7eb;
         border-radius: 4px;
         padding: 3px 6px;
         font-size: 12px;
+        min-width: 0;
+      }
+      .snippet-item .body {
+        grid-column: 2 / span 2;
+      }
+      .snippet-item .meta {
+        grid-column: 1 / span 3;
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        font-size: 11px;
+        color: #6b7280;
+      }
+      .snippet-item .meta select, .snippet-item .meta input[type="checkbox"] {
+        font-size: 11px;
       }
       .snippet-item .del {
         background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 14px; padding: 0 4px;
@@ -259,13 +274,12 @@
       <button class="action secondary" id="clearQueueBtn">Clear queue & stop</button>
     </div>
 
-    <h2>Snippets
+    <h2>Quick prompts
       <button class="action" id="addSnippet" style="padding:2px 8px;font-size:11px;margin-left:6px;">+ Add</button>
+      <button class="action secondary" id="resetSnippets" style="padding:2px 8px;font-size:11px;margin-left:4px;">Reset defaults</button>
     </h2>
+    <div class="desc">Click ✦ in the composer or type <kbd>/name</kbd> <kbd>Tab</kbd> to insert. ⏎ means auto-send.</div>
     <div class="snippets-list" id="snippetsList"></div>
-    <div class="desc" style="margin-top:4px;">
-      Type <kbd>/name</kbd> and press <kbd>Tab</kbd> in the chat input to insert, or click ✦.
-    </div>
 
     <h2>Shortcuts</h2>
     <div class="desc">

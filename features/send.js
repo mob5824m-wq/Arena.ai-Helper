@@ -9,6 +9,7 @@
   function canSendNow() {
     if (!settings.autoSend) return false;
     if (runtime.isAssistantResponding) return false;
+    if (runtime.captchaDetected) return false;
     if (Date.now() < runtime.sendCooldownUntil) return false;
     if (settings.stopAfterThis) return false;
     return true;
