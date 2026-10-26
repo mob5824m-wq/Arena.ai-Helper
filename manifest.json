@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Arena.ai Helper - Auto Scroll & Auto Send",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Auto-scroll, auto-send queued prompts, auto-continue, export, shortcuts, and more for Arena.ai Agent Mode.",
   "permissions": ["storage", "notifications", "scripting"],
   "background": {
@@ -56,6 +56,7 @@
       "js": [
         "lib/state.js",
         "lib/ui.js",
+        "lib/theme.js",
         "features/scroll.js",
         "features/send.js",
         "features/queue.js",
@@ -68,6 +69,7 @@
         "features/closeprotect.js",
         "features/snippets.js",
         "features/floatingstatus.js",
+        "features/counter.js",
         "content.js"
       ],
       "run_at": "document_idle",

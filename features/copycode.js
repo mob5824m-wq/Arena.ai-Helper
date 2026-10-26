@@ -1,17 +1,17 @@
-/* Adds a small "Copy" button to every <pre> block in the conversation. */
+/* Adds a small "Copy" button to every <pre> block in the conversation. Theme-aware. */
 (function () {
   'use strict';
-  const { settings, ui } = window.ArenaHelper;
+  const { settings, theme } = window.ArenaHelper;
   const BUTTON_ID_DATA = 'arenaHelperCopyBtn';
 
   function addButtons(root) {
     if (!settings.showCopyCode) return;
     const scope = root || document;
+    const c = theme.themeColors();
     const pres = scope.querySelectorAll('pre');
     pres.forEach(pre => {
       if (pre.dataset[BUTTON_ID_DATA]) return;
       pre.dataset[BUTTON_ID_DATA] = '1';
-      // Make sure parent is positioned
       const parent = pre.parentElement;
       if (parent) parent.style.position = parent.style.position || 'relative';
       const btn = document.createElement('button');
@@ -27,15 +27,16 @@
         fontSize: '11px',
         lineHeight: '1.2',
         borderRadius: '4px',
-        border: '1px solid rgba(255,255,255,0.25)',
-        background: 'rgba(0,0,0,0.55)',
-        color: '#fff',
+        border: `1px solid ${c.border}`,
+        background: c.buttonBg,
+        color: c.fg,
         cursor: 'pointer',
-        opacity: '0.7',
-        fontFamily: 'inherit'
+        opacity: '0.6',
+        fontFamily: 'inherit',
+        backdropFilter: 'blur(4px)'
       });
       btn.addEventListener('mouseenter', () => { btn.style.opacity = '1'; });
-      btn.addEventListener('mouseleave', () => { btn.style.opacity = '0.7'; });
+      btn.addEventListener('mouseleave', () => { btn.style.opacity = '0.6'; });
       btn.addEventListener('click', async (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
@@ -59,9 +60,19 @@
     document.querySelectorAll('pre').forEach(p => { delete p.dataset[BUTTON_ID_DATA]; });
   }
 
+  function refreshButtons() {
+    // Re-apply theme on existing buttons
+    document.querySelectorAll('[data-arena-helper="copy-code"]').forEach(b => {
+      const c = theme.themeColors();
+      b.style.border = `1px solid ${c.border}`;
+      b.style.background = c.buttonBg;
+      b.style.color = c.fg;
+    });
+  }
+
   function attach() {
     addButtons();
-    const mo = new MutationObserver(() => { addButtons(); });
+    const mo = new MutationObserver(() => addButtons());
     mo.observe(document.body, { childList: true, subtree: true });
 
     window.ArenaHelper.onSettingsChange((key) => {
@@ -69,6 +80,7 @@
         if (settings.showCopyCode) addButtons(); else removeButtons();
       }
     });
+    theme.onThemeChange(refreshButtons);
   }
 
   window.ArenaHelper.features = window.ArenaHelper.features || {};

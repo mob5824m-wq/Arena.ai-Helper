@@ -120,6 +120,29 @@
         color: #9ca3af;
         line-height: 1.4;
       }
+      .profiles {
+        display: flex;
+        gap: 6px;
+        margin: 4px 0 2px 0;
+      }
+      .profile {
+        flex: 1;
+        padding: 6px 4px;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .profile:hover { background: #f3f4f6; }
+      .profile.active {
+        background: #6366f1;
+        color: #fff;
+        border-color: #6366f1;
+      }
       kbd {
         font-family: ui-monospace, monospace;
         font-size: 10px;
@@ -131,7 +154,14 @@
     </style>
   </head>
   <body>
-    <h1><span class="logo"></span> Arena.ai Helper <span style="color:#9ca3af;font-weight:400;font-size:11px;">v2</span></h1>
+    <h1><span class="logo"></span> Arena.ai Helper <span style="color:#9ca3af;font-weight:400;font-size:11px;" id="verLabel">v2</span></h1>
+
+    <div class="profiles" id="profiles">
+      <button type="button" class="profile" data-profile="handsfree">🤖 Hands-free</button>
+      <button type="button" class="profile" data-profile="chat">💬 Chat</button>
+      <button type="button" class="profile" data-profile="off">⭕ Off</button>
+    </div>
+    <div class="desc" style="margin-bottom:4px;" id="profileDesc">Click a profile to apply preset toggles.</div>
 
     <h2>Core</h2>
     <div class="row">

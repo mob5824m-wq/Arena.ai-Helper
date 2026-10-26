@@ -46,6 +46,7 @@
     button.setAttribute('data-arena-helper', 'snippets-btn');
     button.title = 'Arena.ai Helper snippets';
     button.textContent = '✦';
+    const c = window.ArenaHelper.theme.themeColors();
     Object.assign(button.style, {
       position: 'absolute',
       bottom: '8px',
@@ -53,8 +54,8 @@
       width: '28px',
       height: '28px',
       borderRadius: '6px',
-      border: '1px solid rgba(128,128,128,0.3)',
-      background: 'rgba(99,102,241,0.9)',
+      border: `1px solid ${c.border}`,
+      background: c.accent,
       color: '#fff',
       cursor: 'pointer',
       zIndex: 999,
@@ -74,7 +75,6 @@
   }
 
   function findInput() {
-    // Use the shared ui module
     return window.ArenaHelper.ui.findChatInput();
   }
 
@@ -87,17 +87,18 @@
     if (popover) { closePopover(); return; }
     const inp = findInput();
     if (!inp) return;
+    const c = window.ArenaHelper.theme.themeColors();
     popover = document.createElement('div');
     popover.setAttribute('data-arena-helper', 'snippets-popover');
     Object.assign(popover.style, {
       position: 'absolute',
       bottom: '44px',
       left: '8px',
-      background: '#ffffff',
-      color: '#111827',
-      border: '1px solid rgba(0,0,0,0.1)',
+      background: c.bgSolid,
+      color: c.fg,
+      border: `1px solid ${c.border}`,
       borderRadius: '8px',
-      boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+      boxShadow: '0 10px 25px rgba(0,0,0,0.18)',
       zIndex: 1000,
       padding: '6px',
       minWidth: '220px',
@@ -109,12 +110,12 @@
     });
     const header = document.createElement('div');
     header.textContent = 'Snippets';
-    Object.assign(header.style, { padding: '4px 8px', fontWeight: '600', fontSize: '11px', textTransform: 'uppercase', color: '#6b7280', letterSpacing: '0.05em' });
+    Object.assign(header.style, { padding: '4px 8px', fontWeight: '600', fontSize: '11px', textTransform: 'uppercase', color: c.fgMuted, letterSpacing: '0.05em' });
     popover.appendChild(header);
     if (snippets.length === 0) {
       const empty = document.createElement('div');
       empty.textContent = 'No snippets yet. Add some from the extension popup.';
-      Object.assign(empty.style, { padding: '8px', color: '#6b7280', fontSize: '12px' });
+      Object.assign(empty.style, { padding: '8px', color: c.fgMuted, fontSize: '12px' });
       popover.appendChild(empty);
     } else {
       for (const s of snippets) {
@@ -131,9 +132,9 @@
           borderRadius: '4px',
           cursor: 'pointer',
           fontSize: '13px',
-          color: '#111827'
+          color: c.fg
         });
-        item.addEventListener('mouseenter', () => { item.style.background = '#eef2ff'; });
+        item.addEventListener('mouseenter', () => { item.style.background = c.accentBg; });
         item.addEventListener('mouseleave', () => { item.style.background = 'transparent'; });
         item.addEventListener('click', (ev) => {
           ev.preventDefault(); ev.stopPropagation();
@@ -168,7 +169,6 @@
       inp.setSelectionRange(pos, pos);
       inp.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
-      // contenteditable: insert at selection
       const sel = window.getSelection();
       if (sel && sel.rangeCount > 0 && inp.contains(sel.anchorNode)) {
         const range = sel.getRangeAt(0);
@@ -182,7 +182,6 @@
     }
   }
 
-  // Slash-command Tab-completion in the textarea
   function onKeyDown(ev) {
     if (ev.key !== 'Tab') return;
     const inp = ev.target;
@@ -201,9 +200,16 @@
   function attach() {
     loadSnippets();
     document.addEventListener('keydown', onKeyDown, true);
-    // Poll for input to attach the ✦ button (the chat input may mount late)
     setInterval(ensureButton, 1500);
     ensureButton();
+    // Re-style button when theme changes
+    window.ArenaHelper.theme.onThemeChange(() => {
+      if (button) {
+        const c = window.ArenaHelper.theme.themeColors();
+        button.style.border = `1px solid ${c.border}`;
+        button.style.background = c.accent;
+      }
+    });
   }
 
   window.ArenaHelper.features = window.ArenaHelper.features || {};

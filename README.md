@@ -17,12 +17,19 @@ A Chrome extension (Manifest V3) that turns [Arena.ai](https://arena.ai) Agent M
 
 **Input & UI ergonomics**
 - **Auto-focus input** after each response (caret at end of textarea).
-- **Floating status pill** in the page corner showing state: Idle / Generating / Queued:N / Stopping, plus feature flags.
-- **Copy-code buttons** on every code block.
-- **HH:MM timestamps** on messages (optional).
+- **Char/token counter** in the composer corner (rough `chars / 4` estimate) that turns indigo past 4k chars and red past 12k.
+- **Floating status pill** in the page corner showing state: Idle / Generating / Queued:N / Stopping, plus feature flags and clickable ■ Stop / ✕ Clear buttons.
+- **Copy-code buttons** on every code block (theme-aware).
+- **HH:MM timestamps** on messages (optional, theme-aware).
 - **Close-protection** — warns before you close or reload while a response is streaming, there's queued work, or there's unsent text.
-- **Quick-paste snippets** — a small ✦ button next to the input opens a popover of saved prompts; you can edit/add snippets from the toolbar popup. Or type `/name` and press `Tab` in the chat input to insert.
+- **Quick-paste snippets** — a small ✦ button next to the input opens a theme-aware popover of saved prompts; edit/add in popup. Or type `/name` and press `Tab` in the chat input.
 - **Export to Markdown** — one click downloads the current conversation (with fenced code blocks) as a `.md` file.
+- **Full dark/light theme awareness** — all injected UI (status pill, copy buttons, timestamps, snippets popover, ✦ button, counter) samples Arena's background color and adapts.
+- **Three one-click profiles** in the popup:
+  - 🤖 **Hands-free** — all automation on (auto-scroll, auto-send, queue, auto-continue, notifications, focus, close-protect).
+  - 💬 **Chat** — auto-scroll + copy-code + focus + close-protect only; you drive each turn.
+  - ⭕ **Off** — everything off; vanilla Arena.
+- **Arena-native auto-scroll** — when Arena's own "Scroll to bottom" floating button is visible, the helper treats it as the authoritative "user is away from bottom" signal, and clicking it (or returning to the bottom) resumes auto-scroll.
 
 **Keyboard shortcuts** (configurable at `chrome://extensions/shortcuts`)
 - `Alt+Shift+S` toggle auto-send
