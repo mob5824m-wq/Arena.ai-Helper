@@ -1,0 +1,55 @@
+name: Release extension zip
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Package & release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build zip (exclude VCS/dev artifacts)
+        working-directory: .
+        run: |
+          mkdir -p dist
+          ZIP="dist/arena-ai-helper-${{ steps.version.outputs.version }}.zip"
+          zip -r "$ZIP" . \
+            -x "*.git/*" \
+            -x ".github/*" \
+            -x "dist/*" \
+            -x "*.DS_Store" \
+            -x "node_modules/*"
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          ls -la dist/
+        id: zip
+
+      - name: Create GitHub Release and upload zip
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Arena.ai Helper v${{ steps.version.outputs.version }}
+          body: |
+            **Arena.ai Helper v${{ steps.version.outputs.version }}**
+
+            Attached below is `arena-ai-helper-${{ steps.version.outputs.version }}.zip` — install it via `chrome://extensions` → Developer mode → **Load unpacked** (unzip first), or drag-and-drop the zip if your browser allows it.
+
+            #### Install
+            1. Download the zip below.
+            2. Unzip it into a folder.
+            3. Go to `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, and pick that folder.
+          files: |
+            ${{ steps.zip.outputs.zip }}
+          draft: false
+          prerelease: false
