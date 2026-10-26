@@ -24,15 +24,20 @@ jobs:
       - name: Build zip (exclude VCS/dev artifacts)
         working-directory: .
         run: |
+          set -euo pipefail
           mkdir -p dist
-          ZIP="dist/arena-ai-helper-${{ steps.version.outputs.version }}.zip"
-          zip -r "$ZIP" . \
-            -x "*.git/*" \
-            -x ".github/*" \
-            -x "dist/*" \
-            -x "*.DS_Store" \
-            -x "node_modules/*"
-          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          OUTDIR="arena-ai-helper-${{ steps.version.outputs.version }}"
+          mkdir -p "dist/$OUTDIR"
+          # Copy only runtime files into a clean folder so the zip has a predictable top-level dir
+          # (avoiding macOS "double folder" and spurious dotfiles when users unzip).
+          cp -R \
+            manifest.json background.js content.js \
+            popup.html popup.js README.md LICENSE \
+            icons lib features \
+            "dist/$OUTDIR/"
+          (cd dist && zip -r "${OUTDIR}.zip" "$OUTDIR" \
+            -x "*.DS_Store" "*/node_modules/*")
+          echo "zip=dist/${OUTDIR}.zip" >> "$GITHUB_OUTPUT"
           ls -la dist/
         id: zip
 
