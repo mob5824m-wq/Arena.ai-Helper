@@ -1,4 +1,4 @@
-# Arena.ai Helper (v2.2)
+# Arena.ai Helper (v2.3)
 
 A Chrome extension (Manifest V3) that turns [Arena.ai](https://arena.ai) Agent Mode into a hands-free, queueable assistant driver — with a built-in safety stop for captchas/rate-limit challenges.
 
@@ -17,8 +17,10 @@ Indigo rounded-square icon with a white down-arrow (auto-scroll metaphor), shipp
 **Core**
 - **Auto-scroll to bottom** — prefers clicking Arena's native `aria-label="Scroll to bottom"` button when visible; otherwise falls back to its own scroll-container logic. Pauses when Arena's button is visible (authoritative signal you're away from bottom).
 - **Auto-send** — submits text in the compose box as soon as the assistant finishes, keyed off `button[data-perf-target="send"]` and `aria-label="Send message"` (the exact Arena markup).
-- **Multi-prompt queue** — prompts separated by a configurable delimiter (default `---`) are sent one-by-one as each response finishes.
-- **Auto-continue** — clicks "Continue generating" / "Read more" buttons (capped per response for safety).
+- **Multi-prompt queue** — prompts separated by a configurable delimiter (default `---`) are sent one-by-one as each response finishes. The popup includes a live queue editor for reordering, editing, and removing pending work.
+- **Send delay / rate control** — choose the idle-to-send delay (0–30 seconds) for controlled hands-free runs.
+- **Auto-continue** — clicks "Continue generating" / "Read more" buttons, with a configurable per-response safety cap (including zero to disable clicks).
+- **Configurable guardrails** — set a maximum pending-queue length (1–50). When a pasted queue exceeds it, automation does not send or discard the composer; you can edit it safely first.
 - **Stop-after-this-response** (`Alt+Shift+X`).
 
 **Feedback**
@@ -27,8 +29,11 @@ Indigo rounded-square icon with a white down-arrow (auto-scroll metaphor), shipp
 **Input & UI ergonomics**
 - **Quick Prompts** ✦ — one-click preset prompts grouped by **General / Code / Writing / Agent**. Each prompt can be configured to auto-send or just insert (⏎ indicator). Ships with 24 useful defaults (Continue, TL;DR, Fix bugs, Code review, Write tests, Refactor, Formalize, Proofread, Next step, Commands, Verify mods, Status, Mark done, …).
 - **Slash commands** — type `/continue`, `/tldr`, `/fixcode`, etc. and press `Tab` to insert. Custom prompts you add get their own slash id.
+- **Prompt template variables** — quick prompts can insert `{date}`, `{time}`, `{selectedText}`, and `{clipboard}` at send time.
 - Auto-focus input after responses, char/token counter, floating status pill (with clickable ■ Stop / ✕ Clear buttons), copy-code buttons, optional timestamps, close-protection.
-- Full dark/light theme awareness (samples body luminance + `prefers-color-scheme`).
+- **Live popup status** — see generating/idle/captcha state, queue count, safety notices, and recent activity for the active tab.
+- **Settings controls** — choose dark, light, or system popup appearance; optionally scope feature settings to the current Arena conversation; import/export settings and prompt templates as JSON.
+- **Activity history** — a recent, local-only log of sent prompts, response state, queue actions, guardrails, and captcha pauses.
 - Three one-click profiles: **Hands-free**, **Chat**, **Off**.
 - Export conversation to Markdown.
 
@@ -69,7 +74,7 @@ features/*.js           One file per feature (see below)
 icons/                  Toolbar icons
 ```
 
-Feature modules under `features/`: `scroll.js`, `send.js`, `queue.js`, `continue.js`, `notifications.js`, `autofocus.js`, `export.js`, `copycode.js`, `timestamps.js`, `closeprotect.js`, `snippets.js`, `floatingstatus.js`. Each exposes an `attach()` function called by `content.js`.
+Feature modules under `features/`: `scroll.js`, `send.js`, `queue.js`, `continue.js`, `notifications.js`, `autofocus.js`, `export.js`, `copycode.js`, `timestamps.js`, `closeprotect.js`, `quickprompts.js`, `floatingstatus.js`, and `history.js`. Each exposes an `attach()` function called by `content.js`.
 
 ## Notes & caveats
 

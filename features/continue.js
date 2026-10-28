@@ -3,12 +3,14 @@
  */
 (function () {
   'use strict';
-  const { settings, runtime, on, ui } = window.ArenaHelper;
+  const { settings, runtime, on, emit, ui } = window.ArenaHelper;
 
   function attemptContinue() {
     if (!settings.autoContinue) return false;
     if (runtime.captchaDetected) return false;
-    if (runtime.autoContinueClicksThisResponse >= (settings.autoContinueMaxClicks || 3)) return false;
+    const maxClicks = Number.isFinite(Number(settings.autoContinueMaxClicks))
+      ? Math.max(0, Number(settings.autoContinueMaxClicks)) : 3;
+    if (runtime.autoContinueClicksThisResponse >= maxClicks) return false;
     if (runtime.isAssistantResponding) return false;
 
     const btn = ui.findContinueButton();
@@ -21,6 +23,7 @@
 
     runtime.autoContinueClicksThisResponse += 1;
     btn.click();
+    emit('auto-continue:clicked', { count: runtime.autoContinueClicksThisResponse });
     return true;
   }
 

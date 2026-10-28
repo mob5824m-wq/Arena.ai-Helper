@@ -40,6 +40,17 @@
     if (!input) return;
     const text = ui.getInputText(input);
     const { next, rest } = splitIntoPromptAndQueue(text);
+    const maxQueueLength = Math.max(1, Number(settings.maxQueueLength) || 10);
+    if (rest.length + runtime.queuedPrompts.length > maxQueueLength) {
+      // Keep the original composer text untouched. This deliberately requires an
+      // explicit edit rather than silently dropping prompts beyond the guardrail.
+      ev.cancel = true;
+      runtime.safetyNotice = `Queue limit reached: keep at most ${maxQueueLength} pending prompts.`;
+      emit('safety:limit', { message: runtime.safetyNotice });
+      emit('queue:updated', { count: runtime.queuedPrompts.length, blocked: true });
+      return;
+    }
+    runtime.safetyNotice = '';
     if (rest.length > 0) {
       ui.setInputText(input, next);
       runtime.queuedPrompts = [...runtime.queuedPrompts, ...rest];
@@ -78,8 +89,25 @@
 
   function clearQueue() {
     runtime.queuedPrompts = [];
+    runtime.safetyNotice = '';
     setSetting('stopAfterThis', false);
     emit('queue:updated', { count: 0 });
+  }
+
+  function replaceQueue(items) {
+    const cleaned = Array.isArray(items)
+      ? items.map((item) => String(item || '').trim()).filter(Boolean)
+      : [];
+    const maxQueueLength = Math.max(1, Number(settings.maxQueueLength) || 10);
+    if (cleaned.length > maxQueueLength) {
+      runtime.safetyNotice = `Queue limit reached: keep at most ${maxQueueLength} pending prompts.`;
+      emit('safety:limit', { message: runtime.safetyNotice });
+      return { ok: false, error: runtime.safetyNotice, queue: runtime.queuedPrompts.slice() };
+    }
+    runtime.queuedPrompts = cleaned;
+    runtime.safetyNotice = '';
+    emit('queue:updated', { count: cleaned.length, edited: true });
+    return { ok: true, queue: cleaned.slice() };
   }
 
   function stopAfterThis() {
@@ -94,7 +122,7 @@
     on('response:done', onResponseDone);
 
     // Listen for messages from background (shortcut commands)
-    chrome.runtime.onMessage.addListener((msg) => {
+    chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       if (!msg || !msg.type) return;
       if (msg.type === 'cmd:clear-input') {
         const inp = ui.findChatInput();
@@ -112,12 +140,13 @@
       } else if (msg.type === 'cmd:captcha-resume') {
         const { features } = window.ArenaHelper;
         if (features && features.captcha) {
-          // Force captcha feature to re-evaluate by emitting an exit.
-          // The simplest way is to fire a synthetic 'captcha clear' by temporarily
-          // nulling out detection for one tick; we do that via a direct call.
-          // captcha.js exposes no public exit, so message the feature through the DOM.
+          // Captcha handling is intentionally local to the content page.
           window.dispatchEvent(new CustomEvent('arena-helper:captcha-resume'));
         }
+      } else if (msg.type === 'helper:get-queue') {
+        sendResponse({ queue: runtime.queuedPrompts.slice(), maxQueueLength: Number(settings.maxQueueLength) || 10 });
+      } else if (msg.type === 'helper:replace-queue') {
+        sendResponse(replaceQueue(msg.queue));
       }
     });
     window.addEventListener('arena-helper:captcha-resume', () => {
@@ -126,5 +155,5 @@
   }
 
   window.ArenaHelper.features = window.ArenaHelper.features || {};
-  window.ArenaHelper.features.queue = { attach, clearQueue, stopAfterThis };
+  window.ArenaHelper.features.queue = { attach, clearQueue, replaceQueue, stopAfterThis };
 })();

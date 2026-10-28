@@ -6,291 +6,376 @@
     <style>
       * { box-sizing: border-box; }
       body {
+        --bg: #ffffff;
+        --surface: #ffffff;
+        --surface-muted: #f9fafb;
+        --fg: #1f2937;
+        --heading: #111827;
+        --muted: #6b7280;
+        --subtle: #9ca3af;
+        --border: #e5e7eb;
+        --border-light: #f3f4f6;
+        --accent: #6366f1;
+        --accent-soft: #eef2ff;
+        --danger: #ef4444;
         width: 440px;
         margin: 0;
         padding: 16px 18px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         font-size: 13px;
-        color: #1f2937;
-        background: #ffffff;
+        color: var(--fg);
+        background: var(--bg);
         max-height: 720px;
         overflow-y: auto;
       }
+      body[data-theme="dark"] {
+        --bg: #111827;
+        --surface: #1f2937;
+        --surface-muted: #263244;
+        --fg: #e5e7eb;
+        --heading: #f9fafb;
+        --muted: #aeb9c9;
+        --subtle: #8591a3;
+        --border: #374151;
+        --border-light: #2c3849;
+        --accent: #818cf8;
+        --accent-soft: #2e3169;
+        --danger: #f87171;
+      }
       h1 {
-        font-size: 14px;
-        margin: 0 0 8px 0;
-        color: #111827;
+        font-size: 15px;
+        margin: 0 0 10px 0;
+        color: var(--heading);
         display: flex;
         align-items: center;
         gap: 8px;
       }
       .logo {
         width: 18px; height: 18px; border-radius: 4px;
-        background: #6366f1;
+        background: var(--accent);
         display: inline-block;
       }
       h2 {
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        color: #6b7280;
-        margin: 12px 0 4px 0;
+        color: var(--muted);
+        margin: 16px 0 5px 0;
       }
       .row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 7px 0;
-        border-top: 1px solid #f3f4f6;
-        gap: 10px;
+        padding: 8px 0;
+        border-top: 1px solid var(--border-light);
+        gap: 12px;
       }
       .row:first-of-type { border-top: none; }
-      .label { flex: 1; }
-      .desc { font-size: 11px; color: #6b7280; margin-top: 1px; line-height: 1.35; }
+      .label { flex: 1; min-width: 0; }
+      .desc { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+      .inline-control { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+      .number-input, .delimiter, select {
+        padding: 4px 6px;
+        font-size: 12px;
+        color: var(--fg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: var(--surface);
+      }
+      .number-input { width: 76px; text-align: right; }
+      .delimiter { width: 70px; font-family: ui-monospace, monospace; }
 
       /* Toggle switch */
-      .switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
+      .switch { position: relative; display: inline-block; width: 38px; height: 21px; flex-shrink: 0; }
       .switch input { opacity: 0; width: 0; height: 0; }
       .slider {
-        position: absolute; cursor: pointer; inset: 0; background-color: #d1d5db;
+        position: absolute; cursor: pointer; inset: 0; background-color: #9ca3af;
         border-radius: 20px; transition: 0.15s;
       }
       .slider:before {
-        content: ""; position: absolute; height: 14px; width: 14px; left: 3px; bottom: 3px;
+        content: ""; position: absolute; height: 15px; width: 15px; left: 3px; bottom: 3px;
         background-color: #fff; border-radius: 50%; transition: 0.15s;
       }
-      input:checked + .slider { background-color: #6366f1; }
-      input:checked + .slider:before { transform: translateX(16px); }
-
-      .delimiter {
-        width: 60px;
-        padding: 3px 6px;
-        font-size: 12px;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
-        font-family: ui-monospace, monospace;
-      }
+      input:checked + .slider { background-color: var(--accent); }
+      input:checked + .slider:before { transform: translateX(17px); }
 
       button.action {
         padding: 6px 10px;
         border-radius: 6px;
-        border: 1px solid #6366f1;
-        background: #6366f1;
+        border: 1px solid var(--accent);
+        background: var(--accent);
         color: white;
         font-size: 12px;
         cursor: pointer;
-        font-weight: 500;
+        font-weight: 600;
       }
       button.action.secondary {
-        background: #fff;
-        color: #6366f1;
+        background: var(--surface);
+        color: var(--accent);
       }
-      button.action:hover { filter: brightness(1.05); }
-      .actions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+      button.action.danger { border-color: var(--danger); color: var(--danger); }
+      button.action:hover { filter: brightness(1.08); }
+      button.action:disabled { opacity: .55; cursor: not-allowed; }
+      .actions { display: flex; gap: 7px; margin-top: 6px; flex-wrap: wrap; }
+
+      .status-summary {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 9px 10px;
+        background: var(--surface-muted);
+      }
+      .status-title { font-weight: 700; color: var(--heading); }
+      .status-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+      .status-refresh { padding: 5px 8px !important; }
+      .notice {
+        min-height: 0;
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.35;
+      }
+      .notice:not(:empty) { padding: 6px 8px; border-radius: 5px; background: var(--accent-soft); }
+      .notice.error:not(:empty) { color: var(--danger); }
 
       .snippets-list {
-        max-height: 220px;
+        max-height: 250px;
         overflow-y: auto;
-        border: 1px solid #e5e7eb;
+        border: 1px solid var(--border);
         border-radius: 6px;
         padding: 4px;
-        margin-top: 4px;
+        margin-top: 5px;
       }
       .snippet-item {
         display: grid;
-        grid-template-columns: 80px 1fr 70px 24px;
-        gap: 4px;
+        grid-template-columns: 90px 1fr 76px 24px;
+        gap: 5px;
         align-items: center;
-        padding: 4px;
+        padding: 5px;
         border-radius: 4px;
       }
-      .snippet-item:hover { background: #f3f4f6; }
-      .snippet-item input[type="text"] {
-        border: 1px solid #e5e7eb;
+      .snippet-item:hover { background: var(--surface-muted); }
+      .snippet-item input[type="text"], .snippet-item select {
+        border: 1px solid var(--border);
         border-radius: 4px;
-        padding: 3px 6px;
+        padding: 4px 6px;
         font-size: 12px;
         min-width: 0;
+        color: var(--fg);
+        background: var(--surface);
       }
-      .snippet-item .body {
-        grid-column: 2 / span 2;
-      }
+      .snippet-item .body { grid-column: 2 / span 2; }
       .snippet-item .meta {
         grid-column: 1 / span 3;
         display: flex;
         gap: 4px;
         align-items: center;
         font-size: 11px;
-        color: #6b7280;
+        color: var(--muted);
       }
-      .snippet-item .meta select, .snippet-item .meta input[type="checkbox"] {
-        font-size: 11px;
-      }
-      .snippet-item .del {
-        background: transparent; border: none; color: #ef4444; cursor: pointer; font-size: 14px; padding: 0 4px;
+      .snippet-item .del, .queue-icon-btn {
+        background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 14px; padding: 2px 4px;
       }
       .hint {
-        margin-top: 8px;
+        margin-top: 9px;
         font-size: 11px;
-        color: #9ca3af;
+        color: var(--subtle);
         line-height: 1.4;
       }
-      .profiles {
-        display: flex;
-        gap: 6px;
-        margin: 4px 0 2px 0;
-      }
+      .profiles { display: flex; gap: 6px; margin: 4px 0 3px 0; }
       .profile {
-        flex: 1;
-        padding: 6px 4px;
-        border-radius: 6px;
-        border: 1px solid #e5e7eb;
-        background: #fff;
-        color: #374151;
-        font-size: 11px;
-        font-weight: 500;
+        flex: 1; padding: 7px 4px; border-radius: 6px;
+        border: 1px solid var(--border); background: var(--surface); color: var(--fg);
+        font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+      }
+      .profile:hover { background: var(--surface-muted); }
+      .profile.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+      details.panel {
+        margin-top: 7px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        background: var(--surface-muted);
+      }
+      details.panel summary {
         cursor: pointer;
-        transition: all 0.15s;
+        padding: 8px 10px;
+        color: var(--heading);
+        font-weight: 600;
+        font-size: 12px;
       }
-      .profile:hover { background: #f3f4f6; }
-      .profile.active {
-        background: #6366f1;
-        color: #fff;
-        border-color: #6366f1;
+      .panel-content { padding: 0 9px 9px; }
+      .queue-list, .history-list { display: grid; gap: 6px; max-height: 190px; overflow-y: auto; }
+      .queue-item { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: start; }
+      .queue-item textarea {
+        width: 100%; min-height: 48px; resize: vertical; font: 12px/1.35 inherit;
+        color: var(--fg); background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 5px 6px;
       }
+      .queue-item-actions { display: flex; flex-direction: column; gap: 1px; }
+      .queue-icon-btn { color: var(--muted); line-height: 1; }
+      .queue-icon-btn.remove { color: var(--danger); }
+      .empty-state { font-size: 11px; color: var(--muted); padding: 4px 0; }
+      .history-item { border-left: 2px solid var(--accent); padding: 3px 0 3px 7px; }
+      .history-action { color: var(--heading); font-size: 11px; font-weight: 600; }
+      .history-detail, .history-time { color: var(--muted); font-size: 10px; margin-top: 1px; }
+      .split-actions { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-top: 7px; }
       kbd {
-        font-family: ui-monospace, monospace;
-        font-size: 10px;
-        background: #f3f4f6;
-        border: 1px solid #e5e7eb;
-        border-radius: 3px;
-        padding: 1px 4px;
+        font-family: ui-monospace, monospace; font-size: 10px; background: var(--surface-muted);
+        border: 1px solid var(--border); border-radius: 3px; padding: 1px 4px;
       }
+      button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, textarea:focus-visible {
+        outline: 2px solid var(--accent); outline-offset: 2px;
+      }
+      @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
     </style>
   </head>
   <body>
-    <h1><span class="logo"></span> Arena.ai Helper <span style="color:#9ca3af;font-weight:400;font-size:11px;" id="verLabel">v2</span></h1>
+    <h1><span class="logo" aria-hidden="true"></span> Arena.ai Helper <span style="color:var(--subtle);font-weight:400;font-size:11px;" id="verLabel">v2</span></h1>
 
-    <div class="profiles" id="profiles">
+    <div class="profiles" id="profiles" aria-label="Automation profiles">
       <button type="button" class="profile" data-profile="handsfree">🤖 Hands-free</button>
       <button type="button" class="profile" data-profile="chat">💬 Chat</button>
       <button type="button" class="profile" data-profile="off">⭕ Off</button>
     </div>
-    <div class="desc" style="margin-bottom:4px;" id="profileDesc">Click a profile to apply preset toggles.</div>
+    <div class="desc" style="margin-bottom:7px;" id="profileDesc">Click a profile to apply preset toggles.</div>
+
+    <section class="status-summary" aria-label="Current Arena activity">
+      <div>
+        <div class="status-title" id="statusTitle" aria-live="polite">Checking this tab…</div>
+        <div class="status-meta" id="statusMeta">Open an Arena conversation to view live status.</div>
+      </div>
+      <button class="action secondary status-refresh" type="button" id="refreshStatus" aria-label="Refresh live status">Refresh</button>
+    </section>
+    <div class="notice" id="notice" role="status" aria-live="polite"></div>
+
+    <details class="panel" id="queuePanel">
+      <summary>Queue editor <span id="queueCount">(0 pending)</span></summary>
+      <div class="panel-content">
+        <div class="desc" style="margin-bottom:6px;">Reorder, edit, or remove prompts waiting to be sent in this tab.</div>
+        <div class="queue-list" id="queueList"></div>
+        <div class="split-actions">
+          <button class="action secondary" type="button" id="reloadQueueBtn">Reload</button>
+          <button class="action" type="button" id="saveQueueBtn">Save queue</button>
+        </div>
+      </div>
+    </details>
 
     <h2>Core</h2>
     <div class="row">
-      <div class="label">
-        Auto-scroll to bottom
-        <div class="desc">Keep latest message in view.</div>
-      </div>
+      <div class="label">Auto-scroll to bottom<div class="desc">Keep the latest message in view.</div></div>
       <label class="switch"><input type="checkbox" id="autoScroll" /><span class="slider"></span></label>
     </div>
     <div class="row">
-      <div class="label">
-        Pause on manual scroll
-        <div class="desc">Resume when you scroll back down.</div>
-      </div>
+      <div class="label">Pause on manual scroll<div class="desc">Resume when you scroll back down.</div></div>
       <label class="switch"><input type="checkbox" id="scrollPauseOnManualScroll" /><span class="slider"></span></label>
     </div>
     <div class="row">
-      <div class="label">
-        Auto-send prompts
-        <div class="desc">Send queued text when the assistant finishes.</div>
-      </div>
+      <div class="label">Auto-send prompts<div class="desc">Send queued text when the assistant finishes.</div></div>
       <label class="switch"><input type="checkbox" id="autoSend" /><span class="slider"></span></label>
     </div>
     <div class="row">
-      <div class="label">
-        Multi-prompt queue
-        <div class="desc">Separator <input type="text" id="queueDelimiter" class="delimiter" /></div>
-      </div>
+      <div class="label">Auto-send delay<div class="desc">Wait between becoming idle and sending the next prompt.</div></div>
+      <label class="inline-control">ms <input type="number" class="number-input" id="autoSendDelayMs" min="0" max="30000" step="100" /></label>
+    </div>
+    <div class="row">
+      <div class="label">Multi-prompt queue<div class="desc">Separator <input type="text" id="queueDelimiter" class="delimiter" aria-label="Queue separator" /></div></div>
       <label class="switch"><input type="checkbox" id="multiQueueEnabled" /><span class="slider"></span></label>
     </div>
     <div class="row">
-      <div class="label">
-        Auto-continue
-        <div class="desc">Click "Continue generating" automatically.</div>
-      </div>
+      <div class="label">Auto-continue<div class="desc">Click “Continue generating” automatically.</div></div>
       <label class="switch"><input type="checkbox" id="autoContinue" /><span class="slider"></span></label>
+    </div>
+
+    <h2>Safety limits</h2>
+    <div class="row">
+      <div class="label">Maximum queued prompts<div class="desc">Automation stops and keeps the composer unchanged if this limit is exceeded.</div></div>
+      <label class="inline-control"><input type="number" class="number-input" id="maxQueueLength" min="1" max="50" step="1" /> prompts</label>
+    </div>
+    <div class="row">
+      <div class="label">Maximum auto-continues<div class="desc">Cap “Continue generating” clicks for each response.</div></div>
+      <label class="inline-control"><input type="number" class="number-input" id="autoContinueMaxClicks" min="0" max="20" step="1" /> clicks</label>
     </div>
 
     <h2>Feedback</h2>
     <div class="row">
-      <div class="label">
-        Done notification
-        <div class="desc">Desktop notification when chain finishes.</div>
-      </div>
+      <div class="label">Done notification<div class="desc">Desktop notification when a chain finishes.</div></div>
       <label class="switch"><input type="checkbox" id="doneNotification" /><span class="slider"></span></label>
     </div>
     <div class="row">
-      <div class="label">
-        Done sound
-        <div class="desc">Small chime when chain finishes.</div>
-      </div>
+      <div class="label">Done sound<div class="desc">Small chime when a chain finishes.</div></div>
       <label class="switch"><input type="checkbox" id="doneSound" /><span class="slider"></span></label>
     </div>
 
     <h2>Input & UI</h2>
     <div class="row">
-      <div class="label">
-        Auto-focus input
-        <div class="desc">Focus the text box after each response.</div>
-      </div>
+      <div class="label">Auto-focus input<div class="desc">Focus the text box after each response.</div></div>
       <label class="switch"><input type="checkbox" id="autoFocus" /><span class="slider"></span></label>
     </div>
     <div class="row">
-      <div class="label">
-        Floating status pill
-        <div class="desc">Shows state in page corner.</div>
-      </div>
+      <div class="label">Floating status pill<div class="desc">Shows state in the page corner.</div></div>
       <label class="switch"><input type="checkbox" id="showFloatingStatus" /><span class="slider"></span></label>
     </div>
     <div class="row">
-      <div class="label">
-        Copy-code buttons
-        <div class="desc">Add a "Copy" button to each code block.</div>
-      </div>
+      <div class="label">Copy-code buttons<div class="desc">Add a “Copy” button to each code block.</div></div>
       <label class="switch"><input type="checkbox" id="showCopyCode" /><span class="slider"></span></label>
     </div>
     <div class="row">
-      <div class="label">
-        Message timestamps
-        <div class="desc">Show HH:MM badges on new messages.</div>
-      </div>
+      <div class="label">Message timestamps<div class="desc">Show HH:MM badges on new messages.</div></div>
       <label class="switch"><input type="checkbox" id="showTimestamps" /><span class="slider"></span></label>
     </div>
     <div class="row">
-      <div class="label">
-        Protect against accidental close
-        <div class="desc">Warn before closing while busy.</div>
-      </div>
+      <div class="label">Protect against accidental close<div class="desc">Warn before closing while busy.</div></div>
       <label class="switch"><input type="checkbox" id="closeProtect" /><span class="slider"></span></label>
+    </div>
+
+    <h2>Preferences</h2>
+    <div class="row">
+      <div class="label">Per-conversation settings<div class="desc">Keep feature choices for this Arena conversation instead of changing your global defaults.</div></div>
+      <label class="switch"><input type="checkbox" id="perConversationSettings" /><span class="slider"></span></label>
+    </div>
+    <div class="row">
+      <div class="label">Popup appearance<div class="desc">Choose how this extension panel is displayed.</div></div>
+      <select id="popupTheme" aria-label="Popup appearance"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
     </div>
 
     <h2>Actions</h2>
     <div class="actions">
-      <button class="action" id="exportBtn">Export conversation (.md)</button>
-      <button class="action secondary" id="clearQueueBtn">Clear queue & stop</button>
+      <button class="action" type="button" id="exportBtn">Export conversation (.md)</button>
+      <button class="action secondary" type="button" id="clearQueueBtn">Clear queue &amp; stop</button>
     </div>
 
     <h2>Quick prompts
-      <button class="action" id="addSnippet" style="padding:2px 8px;font-size:11px;margin-left:6px;">+ Add</button>
-      <button class="action secondary" id="resetSnippets" style="padding:2px 8px;font-size:11px;margin-left:4px;">Reset defaults</button>
+      <button class="action" type="button" id="addSnippet" style="padding:2px 8px;font-size:11px;margin-left:6px;">+ Add</button>
+      <button class="action secondary" type="button" id="resetSnippets" style="padding:2px 8px;font-size:11px;margin-left:4px;">Reset defaults</button>
     </h2>
-    <div class="desc">Click ✦ in the composer or type <kbd>/name</kbd> <kbd>Tab</kbd> to insert. ⏎ means auto-send.</div>
+    <div class="desc">Click ✦ in the composer or type <kbd>/name</kbd> <kbd>Tab</kbd> to insert. ⏎ means auto-send. Templates support <kbd>{date}</kbd>, <kbd>{time}</kbd>, <kbd>{selectedText}</kbd>, and <kbd>{clipboard}</kbd>.</div>
     <div class="snippets-list" id="snippetsList"></div>
+
+    <h2>Settings backup</h2>
+    <div class="desc">Export your preferences and quick prompts to JSON, or restore them on another browser.</div>
+    <div class="actions">
+      <button class="action secondary" type="button" id="exportSettingsBtn">Export settings</button>
+      <button class="action secondary" type="button" id="importSettingsBtn">Import settings</button>
+      <input id="importSettingsInput" type="file" accept="application/json,.json" hidden />
+    </div>
+
+    <details class="panel">
+      <summary>Activity history</summary>
+      <div class="panel-content">
+        <div class="history-list" id="historyList"></div>
+        <div class="split-actions"><span class="desc">Stored only on this device.</span><button class="action secondary danger" type="button" id="clearHistoryBtn">Clear history</button></div>
+      </div>
+    </details>
 
     <h2>Shortcuts</h2>
     <div class="desc">
-      <kbd>Alt+Shift+S</kbd> toggle auto-send ·
-      <kbd>Alt+Shift+A</kbd> toggle auto-scroll ·
-      <kbd>Alt+Shift+C</kbd> clear input ·
-      <kbd>Alt+Shift+X</kbd> stop after this.
+      <kbd>Alt+Shift+S</kbd> toggle auto-send · <kbd>Alt+Shift+A</kbd> toggle auto-scroll ·
+      <kbd>Alt+Shift+C</kbd> clear input · <kbd>Alt+Shift+X</kbd> stop after this.
       Change them at <em>chrome://extensions/shortcuts</em>.
     </div>
-
-    <div class="hint">Refresh the Arena.ai tab after changing settings.</div>
+    <div class="hint">All controls are keyboard accessible. Refresh the Arena.ai tab after changing settings if an older page does not update immediately.</div>
 
     <script src="popup.js"></script>
   </body>
