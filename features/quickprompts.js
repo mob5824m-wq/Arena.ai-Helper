@@ -45,7 +45,9 @@
     { id: 'done',      label: 'Mark done',      category: 'Agent',    autoSend: true,  body: 'Stop here. Summarize what you did and any remaining work.' }
   ];
 
-  let prompts = [];
+  // Keep built-ins available immediately; storage replaces them once it has loaded.
+  // This avoids a race where the first /command is entered before chrome.storage replies.
+  let prompts = defaults.slice();
   let popover = null;
   let button = null;
 
@@ -288,20 +290,50 @@
     }
   }
 
+  function normalizeCommand(value) {
+    return String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+  }
+
+  function findPromptByCommand(key) {
+    const command = normalizeCommand(key);
+    return prompts.find((prompt) => normalizeCommand(prompt.id) === command
+      || normalizeCommand(prompt.label) === command) || null;
+  }
+
+  function isComposer(el) {
+    if (!el || !el.tagName) return false;
+    const tag = el.tagName.toUpperCase();
+    if (tag === 'TEXTAREA' || tag === 'INPUT') return true;
+    // Arena can use contenteditable="true", contenteditable="plaintext-only",
+    // or a role=textbox element depending on the composer variant.
+    return !!(el.isContentEditable
+      || (el.getAttribute && el.getAttribute('contenteditable') !== null)
+      || (el.getAttribute && el.getAttribute('role') === 'textbox'));
+  }
+
+  function getComposerFromTarget(target) {
+    if (isComposer(target)) return target;
+    if (target && typeof target.closest === 'function') {
+      const parent = target.closest('textarea, input, [contenteditable], [role="textbox"]');
+      if (isComposer(parent)) return parent;
+    }
+    return null;
+  }
+
   function onKeyDown(ev) {
-    if (ev.key !== 'Tab') return;
-    const inp = ev.target;
-    if (!inp || (inp.tagName !== 'TEXTAREA' && inp.getAttribute && inp.getAttribute('contenteditable') !== 'true')) return;
+    if (ev.key !== 'Tab' && ev.keyCode !== 9) return;
+    const inp = getComposerFromTarget(ev.target);
+    if (!inp) return;
     const text = window.ArenaHelper.ui.getInputText(inp);
     const m = /\/([a-zA-Z0-9_-]+)\s*$/.exec(text);
     if (!m) return;
-    const key = m[1].toLowerCase();
-    const p = prompts.find(s => (s.id || '').toLowerCase() === key || (s.label || '').toLowerCase() === key);
-    if (!p) return;
+    const prompt = findPromptByCommand(m[1]);
+    if (!prompt) return;
     ev.preventDefault();
+    ev.stopPropagation();
     // Replace the slash-command with the expanded prompt body. For Tab we insert
     // only (don't auto-send), matching how snippet completions usually work.
-    expandTemplate(p.body).then((body) => {
+    expandTemplate(prompt.body).then((body) => {
       const latest = window.ArenaHelper.ui.getInputText(inp);
       const newText = latest.replace(/\/([a-zA-Z0-9_-]+)\s*$/, body);
       window.ArenaHelper.ui.setInputText(inp, newText);
