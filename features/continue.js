@@ -7,6 +7,7 @@
 
   function attemptContinue() {
     if (!settings.autoContinue) return false;
+    if (settings.stopAfterThis) return false;
     if (runtime.captchaDetected) return false;
     const maxClicks = Number.isFinite(Number(settings.autoContinueMaxClicks))
       ? Math.max(0, Number(settings.autoContinueMaxClicks)) : 3;
@@ -49,6 +50,18 @@
   function attach() {
     on('response:started', onResponseStarted);
     on('response:done', onResponseDone);
+
+    // Arena can render the continuation control after the response-state watcher
+    // has already run. Poll lightly while idle so a visible Continue/Read more
+    // control is still clicked even if that transition was missed.
+    setInterval(() => {
+      if (!runtime.isAssistantResponding) attemptContinue();
+    }, 1000);
+
+    const observer = new MutationObserver(() => {
+      if (!runtime.isAssistantResponding) setTimeout(attemptContinue, 100);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   window.ArenaHelper.features = window.ArenaHelper.features || {};

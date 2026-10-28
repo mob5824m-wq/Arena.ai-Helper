@@ -1,17 +1,15 @@
-/* Auto-scroll feature. Scrolls chat container to bottom on new messages.
- * - Pauses when the user manually scrolls up.
- * - Uses Arena's native "Scroll to bottom" floating button (aria-label="Scroll to bottom")
- *   as the authoritative signal for "user is away from bottom": while that button is
- *   visible in the DOM, auto-scroll is paused; when it disappears (user returns near
- *   the bottom, or we just clicked it), auto-scroll resumes.
- * - Resumes automatically when the user returns to the bottom.
+/* Auto-scroll feature. Scrolls the chat container to the latest message.
+ * A real scroll event is the source of truth for a manual pause. Arena's own
+ * "Scroll to bottom" button is an action we can use, not proof on its own that
+ * auto-scroll should stop (the button may appear while new content streams).
  */
 (function () {
   'use strict';
   const { settings, runtime, on, ui } = window.ArenaHelper;
   let chatContainer = null;
   let scheduled = false;
-  let scrollListenerAttached = false;
+  let scrollListenerContainer = null;
+  let autoScrollUntil = 0;
 
   function ensureContainer() {
     if (!chatContainer || !document.contains(chatContainer)) {
@@ -22,8 +20,7 @@
   }
 
   function schedule() {
-    if (!settings.autoScroll) return;
-    if (scheduled) return;
+    if (!settings.autoScroll || scheduled) return;
     scheduled = true;
     requestAnimationFrame(() => {
       scheduled = false;
@@ -31,83 +28,72 @@
     });
   }
 
-  function arenaScrollBtnVisible() {
-    const b = ui.findArenaScrollToBottomButton();
-    return !!(b && !b.disabled);
+  function markAutoScrolling(smooth) {
+    // Smooth scrolling emits intermediate scroll events. Do not mistake those for
+    // a reader manually moving away from the latest message.
+    autoScrollUntil = Date.now() + (smooth ? 1400 : 300);
+    runtime.userScrolledUp = false;
   }
 
   function run(smooth = true) {
     if (!settings.autoScroll) return;
-
-    // Authoritative pause: if Arena is showing its own "Scroll to bottom" button,
-    // the user is away from bottom. Honor that instead of fighting them.
-    if (settings.scrollPauseOnManualScroll && arenaScrollBtnVisible()) {
-      runtime.userScrolledUp = true;
-      return;
-    }
-
-    // Secondary pause: our own scroll-position check (in case Arena's button isn't rendered yet)
     if (settings.scrollPauseOnManualScroll && runtime.userScrolledUp) return;
 
-    // Click Arena's own scroll-bottom button if visible — it uses Arena's internal target.
     const nativeBtn = ui.findArenaScrollToBottomButton();
+    markAutoScrolling(smooth);
     if (nativeBtn && !nativeBtn.disabled) {
-      runtime.userScrolledUp = false;
       nativeBtn.click();
       return;
     }
-    const el = ensureContainer();
-    if (el) {
-      // If we're programmatically scrolling, we must be at the bottom afterwards.
-      runtime.userScrolledUp = false;
-      ui.scrollToBottom(el, smooth);
+
+    const container = ensureContainer();
+    if (container) {
+      ui.scrollToBottom(container, smooth);
     } else {
-      runtime.userScrolledUp = false;
       window.scrollTo({ top: document.documentElement.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
     }
   }
 
   function onScroll() {
-    const el = ensureContainer();
-    const target = el && el !== document.body ? el : null;
-    if (ui.isNearBottom(target)) {
-      runtime.userScrolledUp = false;
-      schedule();
-    } else {
-      const nearTop = target ? target.scrollTop < 30 : (window.scrollY || 0) < 30;
-      if (!nearTop) runtime.userScrolledUp = true;
+    const container = ensureContainer();
+    const target = container && container !== document.body && container !== document.documentElement
+      ? container : null;
+
+    if (Date.now() < autoScrollUntil) {
+      if (ui.isNearBottom(target)) runtime.userScrolledUp = false;
+      return;
     }
+
+    // Any user-positioned scroll away from the end pauses auto-scroll. Previously
+    // the page's native button was treated as a pause signal, which prevented the
+    // helper from ever clicking it during a streaming response.
+    runtime.userScrolledUp = !ui.isNearBottom(target);
+    if (!runtime.userScrolledUp) schedule();
   }
 
   function attachContainerScroll() {
-    if (scrollListenerAttached) return;
-    const el = chatContainer;
-    if (el && el !== document.body && el !== document.documentElement) {
-      el.addEventListener('scroll', onScroll, { passive: true });
-      scrollListenerAttached = true;
+    const container = chatContainer;
+    if (scrollListenerContainer === container) return;
+    if (scrollListenerContainer) scrollListenerContainer.removeEventListener('scroll', onScroll);
+    scrollListenerContainer = null;
+    if (container && container !== document.body && container !== document.documentElement) {
+      container.addEventListener('scroll', onScroll, { passive: true });
+      scrollListenerContainer = container;
     }
   }
 
   function attach() {
     window.addEventListener('scroll', onScroll, { passive: true });
     ensureContainer();
-    setTimeout(() => { ensureContainer(); }, 1500);
-    setTimeout(() => { ensureContainer(); }, 5000);
+    setTimeout(ensureContainer, 1500);
+    setTimeout(ensureContainer, 5000);
 
-    // Also watch for the native "scroll to bottom" button appearing/disappearing as
-    // a strong signal to pause/resume auto-scroll.
-    const btnObserver = new MutationObserver(() => {
-      if (!settings.autoScroll) return;
-      if (!settings.scrollPauseOnManualScroll) return;
-      if (arenaScrollBtnVisible()) {
-        runtime.userScrolledUp = true;
-      } else {
-        // Button disappeared — either we clicked it, or user scrolled to bottom.
-        runtime.userScrolledUp = false;
-        schedule();
-      }
+    // Schedule a run when Arena adds message content or its native scroll control.
+    // Respect a genuine manual pause; otherwise the new control is clicked by run().
+    const observer = new MutationObserver(() => {
+      if (settings.autoScroll && !runtime.userScrolledUp) schedule();
     });
-    btnObserver.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
   }
 
   function forceScroll() {
@@ -115,8 +101,8 @@
     run(false);
   }
 
-  on('response:started', () => { runtime.userScrolledUp = false; schedule(); });
-  on('response:done', () => { runtime.userScrolledUp = false; run(false); });
+  on('response:started', schedule);
+  on('response:done', () => run(false));
 
   window.ArenaHelper.features = window.ArenaHelper.features || {};
   window.ArenaHelper.features.scroll = { schedule, run, forceScroll, attach };

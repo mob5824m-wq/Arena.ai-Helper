@@ -15,7 +15,7 @@ Indigo rounded-square icon with a white down-arrow (auto-scroll metaphor), shipp
   - After the captcha disappears for ≥2 seconds, automation resumes automatically.
 
 **Core**
-- **Auto-scroll to bottom** — prefers clicking Arena's native `aria-label="Scroll to bottom"` button when visible; otherwise falls back to its own scroll-container logic. Pauses when Arena's button is visible (authoritative signal you're away from bottom).
+- **Auto-scroll to bottom** — prefers clicking Arena's native `aria-label="Scroll to bottom"` button when visible; otherwise falls back to its own scroll-container logic. Pauses only after a real manual scroll away from the latest message, so newly appearing native controls do not block automation.
 - **Auto-send** — submits text in the compose box as soon as the assistant finishes, keyed off `button[data-perf-target="send"]` and `aria-label="Send message"` (the exact Arena markup).
 - **Multi-prompt queue** — prompts separated by a configurable delimiter (default `---`) are sent one-by-one as each response finishes. The popup includes a live queue editor for reordering, editing, and removing pending work.
 - **Send delay / rate control** — choose the idle-to-send delay (0–30 seconds) for controlled hands-free runs.
