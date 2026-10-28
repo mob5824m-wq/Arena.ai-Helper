@@ -233,16 +233,44 @@
     else document.addEventListener('click', outsideClick, { once: true });
   }
 
-  function applyPrompt(p) {
+  function getSelectedText() {
+    const active = document.activeElement;
+    if (active && (active.tagName === 'TEXTAREA' || active.tagName === 'INPUT')
+        && typeof active.selectionStart === 'number' && typeof active.selectionEnd === 'number') {
+      return String(active.value || '').slice(active.selectionStart, active.selectionEnd).trim();
+    }
+    try { return String(window.getSelection ? window.getSelection().toString() : '').trim(); } catch (e) { return ''; }
+  }
+
+  async function expandTemplate(body) {
+    const template = String(body || '');
+    const now = new Date();
+    const values = {
+      date: now.toLocaleDateString(),
+      time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      selectedtext: getSelectedText(),
+      clipboard: ''
+    };
+    // Clipboard access may be unavailable on a page/browser; leave the variable
+    // blank instead of interrupting insertion in that case.
+    if (/\{clipboard\}/i.test(template) && navigator.clipboard && navigator.clipboard.readText) {
+      try { values.clipboard = await navigator.clipboard.readText(); } catch (e) {}
+    }
+    return template.replace(/\{(date|time|selectedText|clipboard)\}/gi, (match, key) => values[String(key).toLowerCase()]);
+  }
+
+  async function applyPrompt(p) {
     if (window.ArenaHelper.runtime.captchaDetected) return; // don't insert/send during captcha
     const inp = findInput();
     if (!inp) return;
+    // Resolve selection-based values before moving focus into the composer.
+    const body = await expandTemplate(p.body);
     inp.focus();
     // Append or replace: if the existing input looks like a pre-send instruction (empty), replace;
     // otherwise add a blank line and append.
     const existing = window.ArenaHelper.ui.getInputText(inp);
     const joiner = existing.trim() ? '\n\n' : '';
-    const newText = existing.trim() ? existing + joiner + p.body : p.body;
+    const newText = existing.trim() ? existing + joiner + body : body;
     window.ArenaHelper.ui.setInputText(inp, newText);
     // Auto-send if enabled, not during captcha, and not already responding
     if (p.autoSend) {
@@ -253,12 +281,10 @@
         if (!settings.autoSend) return;
         if (features && features.send) features.send.tryAutoSend();
       }, 250);
-    } else {
+    } else if (inp.tagName === 'TEXTAREA') {
       // Move caret to end
-      if (inp.tagName === 'TEXTAREA') {
-        const len = inp.value.length;
-        inp.setSelectionRange(len, len);
-      }
+      const len = inp.value.length;
+      inp.setSelectionRange(len, len);
     }
   }
 
@@ -273,10 +299,13 @@
     const p = prompts.find(s => (s.id || '').toLowerCase() === key || (s.label || '').toLowerCase() === key);
     if (!p) return;
     ev.preventDefault();
-    // Replace the slash-command with the prompt body. For Tab we insert only (don't auto-send),
-    // matching how snippet completions usually work.
-    const newText = text.replace(/\/([a-zA-Z0-9_-]+)\s*$/, p.body);
-    window.ArenaHelper.ui.setInputText(inp, newText);
+    // Replace the slash-command with the expanded prompt body. For Tab we insert
+    // only (don't auto-send), matching how snippet completions usually work.
+    expandTemplate(p.body).then((body) => {
+      const latest = window.ArenaHelper.ui.getInputText(inp);
+      const newText = latest.replace(/\/([a-zA-Z0-9_-]+)\s*$/, body);
+      window.ArenaHelper.ui.setInputText(inp, newText);
+    });
   }
 
   function retheme() {
@@ -303,5 +332,5 @@
   window.ArenaHelper.defaultQuickPrompts = defaults;
 
   window.ArenaHelper.features = window.ArenaHelper.features || {};
-  window.ArenaHelper.features.quickprompts = { attach, applyPrompt };
+  window.ArenaHelper.features.quickprompts = { attach, applyPrompt, expandTemplate };
 })();

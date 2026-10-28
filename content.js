@@ -54,7 +54,7 @@
     // Order matters: scroll/queue/send first, then niceties.
     const order = [
       'scroll', 'send', 'queue', 'continue', 'notifications', 'autofocus',
-      'copycode', 'timestamps', 'closeprotect', 'snippets', 'floatingstatus', 'counter', 'exportMd'
+      'copycode', 'timestamps', 'closeprotect', 'snippets', 'floatingstatus', 'counter', 'history', 'exportMd'
     ];
     for (const name of order) {
       const f = features && features[name];
