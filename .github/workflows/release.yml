@@ -1,9 +1,11 @@
 name: Release extension zip
 
 on:
+  # A merged pull request creates a push to main, so every merge gets a fresh,
+  # uniquely tagged GitHub Release and extension zip.
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -17,16 +19,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Determine version
-        id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Determine release metadata
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./manifest.json').version")"
+          RELEASE_VERSION="${VERSION}-build.${GITHUB_RUN_NUMBER}"
+          echo "version=${RELEASE_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${RELEASE_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Build zip (exclude VCS/dev artifacts)
+        id: zip
         working-directory: .
         run: |
           set -euo pipefail
           mkdir -p dist
-          OUTDIR="arena-ai-helper-${{ steps.version.outputs.version }}"
+          OUTDIR="arena-ai-helper-${{ steps.release.outputs.version }}"
           mkdir -p "dist/$OUTDIR"
           # Copy only runtime files into a clean folder so the zip has a predictable top-level dir
           # (avoiding macOS "double folder" and spurious dotfiles when users unzip).
@@ -39,16 +48,19 @@ jobs:
             -x "*.DS_Store" "*/node_modules/*")
           echo "zip=dist/${OUTDIR}.zip" >> "$GITHUB_OUTPUT"
           ls -la dist/
-        id: zip
 
       - name: Create GitHub Release and upload zip
         uses: softprops/action-gh-release@v2
         with:
-          name: Arena.ai Helper v${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.release.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Arena.ai Helper v${{ steps.release.outputs.version }}
           body: |
-            **Arena.ai Helper v${{ steps.version.outputs.version }}**
+            **Arena.ai Helper v${{ steps.release.outputs.version }}**
 
-            Attached below is `arena-ai-helper-${{ steps.version.outputs.version }}.zip` — install it via `chrome://extensions` → Developer mode → **Load unpacked** (unzip first), or drag-and-drop the zip if your browser allows it.
+            This release is automatically built from merge commit `${{ github.sha }}`.
+
+            Attached below is `arena-ai-helper-${{ steps.release.outputs.version }}.zip` — install it via `chrome://extensions` → Developer mode → **Load unpacked** (unzip first), or drag-and-drop the zip if your browser allows it.
 
             #### Install
             1. Download the zip below.

@@ -87,20 +87,13 @@ Feature modules under `features/`: `scroll.js`, `send.js`, `queue.js`, `continue
 
 ## Releases (GitHub zip)
 
-Every pushed `vX.Y.Z` tag triggers `.github/workflows/release.yml`, which:
+Every merge to `main` triggers `.github/workflows/release.yml`, which:
 
-1. Checks out the repo.
-2. Zips the extension files (excluding `.git`, `.github`, `dist`, `node_modules`, OS metadata) into `dist/arena-ai-helper-<version>.zip`.
-3. Creates a GitHub Release named **Arena.ai Helper vX.Y.Z** with the zip attached as a release asset.
-
-To cut a release:
-
-```bash
-# Bump version in manifest.json first, then:
-git tag -a v2.0.1 -m "v2.0.1"
-git push origin v2.0.1
-```
+1. Reads the semantic version from `manifest.json`.
+2. Adds the GitHub Actions run number to create a unique release version such as `2.3.0-build.42`.
+3. Zips the extension files (excluding `.git`, `.github`, `dist`, `node_modules`, and OS metadata) into `arena-ai-helper-<release-version>.zip`.
+4. Creates a GitHub Release and matching `v<release-version>` tag pointing at that merge commit.
 
 The workflow runs on `ubuntu-latest` and uses [`softprops/action-gh-release@v2`](https://github.com/softprops/action-gh-release) to publish. Users can download the zip directly from the Releases page, unzip it, and Load unpacked — no need to clone the repo.
 
-You can also run the workflow manually from the **Actions** tab via **Run workflow** (it will build a zip for whatever commit you run it on; you'll still want a tag for a proper numbered release).
+You can also run the workflow manually from the **Actions** tab via **Run workflow**. Bump `manifest.json` when the user-facing semantic version changes; otherwise each merge still receives its own build-numbered release.
